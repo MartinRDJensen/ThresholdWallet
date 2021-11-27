@@ -5,13 +5,11 @@ n = 3
 p = 123123288677
 d = dealer.Dealer(n, p)
 
-
 lst = []
 
 for x in range(1, n+1):
-    lst.append(party.Party(d,x,x*12312))
-    print(x*12312)
-input()
+    lst.append(party.Party(d,x,x*2))
+
 for peer in lst:
     for tmp in lst:
         peer.peers[tmp.ID] = tmp
@@ -47,11 +45,40 @@ for x in lst:
 #y = 2
 #z = 3 
 
-#x+2+y+2+z+3+z+y
+#x*y*z+y+2+z+3+z+y
+#distribute_mult_shares
 vals = []
+
+
+######################################################################################
+#Ugly as method to do the mult....
+#find a better way
+d.distribute_mult_shares()
 for x in lst:
-    tmp1 = x.add_const(2, x.party_shares['1'], 3)
-    print("tmp1: ", tmp1)
+        x.mult_p1(x.party_shares['1'], x.party_shares['2'])
+        x.open_eps_delt()
+tmp1lst = []
+for x in lst:
+    tmp1lst.append(x.mult_p2())
+d.distribute_mult_shares()
+c = 0
+for x in lst:
+    x.mult_p1(tmp1lst[c], x.party_shares['3'])
+    x.open_eps_delt()
+    c+=1
+tmp2lst = []
+for x in lst:
+    tmp2lst.append(x.mult_p2())
+######################################################################################
+
+
+c = 0
+for x in lst:
+    tmp1 = tmp2lst[c]
+    c+=1
+    #tmp1 = x.mult_p2()        
+    #tmp1 = x.add_const(2, x.party_shares['1'], 3)
+    #print("tmp1: ", tmp1)
     tmp2 = x.add_const(2, x.party_shares['2'], 3)
     print("tmp2: ", tmp2)
     tmp3 = x.add_const(3, x.party_shares['3'], 3)
@@ -70,14 +97,8 @@ for x in lst:
     print(vals)
 
 def kekw(x,y,z):
-    tmp1 = x+2 % p
-    tmp2 = y+2 % p
-    tmp3 = z+3 % p
-    tmp4 = y+z % p
-    tmp5 = tmp1 + tmp2 % p
-    tmp6 = tmp3 + tmp4 % p
-    tmp7 = tmp5+tmp6 % p
-    return (x+2+y+2+z+3+z+y) % p
+    return (x*y*z+y+2+z+3+z+y) % p
 
-
-
+print("sum vals, ", sum(vals) % p)
+print(kekw(2, 4, 6))
+assert(sum(vals) % p == kekw(2, 4, 6))

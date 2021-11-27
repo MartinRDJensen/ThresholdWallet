@@ -1,4 +1,3 @@
-import time
 class Party:
     dealer = None
     p = None
@@ -22,6 +21,9 @@ class Party:
         self.bedoza_vals = {}
         self.party_shares = {}
     
+    
+
+
     def delta_comp_open(self):
         a = sum(self.a_shares.values()) + self.share_a
         delta = a - self.v
@@ -116,23 +118,35 @@ class Party:
     def add_two_values(self, x, y):
         return (x + y) % self.p
 
-    
-
-
-
-
     def send_share_a(self):
         return self.share_a
     def recv_share_a(self, a):
         self.a_shares.append(a)
 
+    def open_eps_delt(self):
+        d = self.bedoza_vals[str(self.ID)+'-delta-mult']
+        e = self.bedoza_vals[str(self.ID)+'-eps-mult']
+        self.open_val(d, 'delta-mult')
+        self.open_val(e, 'eps-mult')
+    def mult_p1(self,  x, y):
+        u = self.bedoza_vals[str(self.ID)+'-u']
+        v = self.bedoza_vals[str(self.ID)+'-v']
+        e = (x - u) % self.p
+        d = (y - v) % self.p
+        self.bedoza_vals[str(self.ID)+'-eps-mult'] = e
+        self.bedoza_vals[str(self.ID)+'-delta-mult'] = d
 
-    def mult_p1(self,  x, y, a, b):
-        e = (x - a) % self.p
-        d = (y - b) % self.p
-        return e,d
-
-    def mult_p2(self, e, d, a, b, c):
-        #d = sum of all d's
-        #e = sum of all e's
-        return (c + e * b + d * a + e * d) % self.p
+    def mult_p2(self):
+        e = 0
+        d = 0
+        w = self.bedoza_vals[str(self.ID)+'-w']
+        v = self.bedoza_vals[str(self.ID)+'-v']
+        u= self.bedoza_vals[str(self.ID)+'-u']
+        for x, y in self.bedoza_vals.items():
+            if 'eps-mult' in x:
+                e += y % self.p
+            if 'delta-mult' in x:
+                d += y % self.p
+        tmp_res = (w + e * v + d * u) % self.p
+        result = self.add_const(e * d, tmp_res, 3)
+        return result
