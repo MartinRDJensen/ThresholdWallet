@@ -2,7 +2,9 @@ import time
 import dealer
 import party
 n = 3
-p = 123123288677
+
+#P = PRIME USED IN BITCOIN
+p = 2**256-2**32-2**9-2**8-2**7-2**6-2**4-1
 d = dealer.Dealer(n, p)
 
 lst = []
