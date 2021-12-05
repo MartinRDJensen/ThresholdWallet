@@ -7,7 +7,7 @@ class Dealer:
         self.parties = {}
         self.p = p
         self.n = n
-#        self.a, self.a_shares = self.gen_shares_of_a(self.n)
+        self.a, self.a_shares = self.gen_shares_of_a(self.n)
 
     def distribute_shares(self):
         for _, v in self.parties.items():
@@ -30,6 +30,16 @@ class Dealer:
             v.bedoza_vals[str(v.ID) + '-u'] = u_shares[c]
             v.bedoza_vals[str(v.ID) + '-v'] = v_shares[c]
             c += 1
+    
+    def distribute_mult_shares2(self, t):
+        w_shares, u_shares, v_shares = self.gen_mult_vals()
+        c = 0
+        for _, v in self.parties.items():
+            v.bedoza_vals[str(v.ID) +'-'+ t[0]] = w_shares[c]
+            v.bedoza_vals[str(v.ID) +'-'+ t[1]] = u_shares[c]
+            v.bedoza_vals[str(v.ID) +'-'+ t[2]] = v_shares[c]
+            c += 1
+    
 
     def prepare_new_a_shares(self):
         self.a = random.randint(0, self.p)

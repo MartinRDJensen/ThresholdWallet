@@ -1,7 +1,6 @@
 from ecpy.curves import Curve, Point
 from ecpy.keys import ECPrivateKey, ECPublicKey
 import hashlib
-
 import random
 
 
@@ -24,15 +23,10 @@ class Ecdsa:
             Kurven i bitcoin er secp256k1. Dens order er forskellig fra self.p
             secp256k1 => y^2 = x^3 + 7 mod secp256k1.order
         """
-        self.p = p
+        #self.p = p
         self.curve = Curve.get_curve('secp256k1')
-        self.sk = ECPrivateKey(0xfb26a4e75eec75544c0f44e937dcf5ee6355c7176600b9688c667e5c283b43c5, self.curve)
-        self.pk = ECPublicKey(Point(0x65d5b8bf9ab1801c9f168d4815994ad35f1dcb6ae6c7a1a303966b677b813b00, 0xe6b865e529b8ecbf71cf966e900477d49ced5846d7662dd2dd11ccd55c0aff7f, self.curve))
-        print(1/self.curve.order)
-    def field_elem_to_int(self, alpha):
-        #Do we need this?
-        #4.3.5 in 
-        pass 
+        #self.sk = ECPrivateKey(0xfb26a4e75eec75544c0f44e937dcf5ee6355c7176600b9688c667e5c283b43c5, self.curve)
+        #self.pk = ECPublicKey(Point(0x65d5b8bf9ab1801c9f168d4815994ad35f1dcb6ae6c7a1a303966b677b813b00, 0xe6b865e529b8ecbf71cf966e900477d49ced5846d7662dd2dd11ccd55c0aff7f, self.curve))
     def sign(self, M, sk):
         #sk is private key in ecpy
         #has attributes;
@@ -63,7 +57,6 @@ class Ecdsa:
         #Kan H(M) være modulus eller er det gg?
         s = (k_inv*(e_+sk.d*rx)) % order
         if s == 0:
-            #Redo message digesting???
             #Chance 1/p
             return None
         return (rx, s)
@@ -80,8 +73,8 @@ class Ecdsa:
         G = curve.generator
         Q = pk.W
 
-        assert(rx >= 1 and rx <= self.p-1)
-        assert(s_ >= 1 and s_ <= self.p-1)
+#        assert(rx >= 1 and rx <= self.p-1)
+ #       assert(s_ >= 1 and s_ <= self.p-1)
 
         c = pow(s_, -1, order)
         u1 = (e_ * c) % order
@@ -89,7 +82,7 @@ class Ecdsa:
 
         tmp = u1*G +u2*Q
         #if tmp = inf reject
-        #Convert field elem x1 to int 
+        #Convert field elem x1 to int  ### NOt needed since we have mod an odd prime
         #comp v = x1_int mod self.p
         #if rx = v yay else corrupt message
 
@@ -98,9 +91,9 @@ class Ecdsa:
         print("rx is: ", rx)
         return rx == v
 
-a = Ecdsa(2**256-2**32-2**9-2**8-2**7-2**6-2**4-1)
-z= a.sign(b"asa", a.sk)
-assert(a.verify(b"asa", z, a.pk))
+#a = Ecdsa(2**256-2**32-2**9-2**8-2**7-2**6-2**4-1)
+#z= a.sign(b"asa", a.sk)
+#assert(a.verify(b"asa", z, a.pk))
 
 
 
