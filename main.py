@@ -40,7 +40,7 @@ for x in lst:
     x.compute_share_of_party(1)
     
 for x in lst:
-            print("Party {0}'s value is {1}".format(x.ID, x.v))
+    print("Party {0}'s value is {1}".format(x.ID, x.v))
     
 tmp = 0
 for x in lst:
@@ -65,6 +65,7 @@ for x in lst:
 
 qqqsk = []
 
+
 for x in lst:
     qqqsk.append(x.dpre2())
 
@@ -72,29 +73,43 @@ for x in lst:
 M = b'fakjhfljas'
 c= 0
 for x in lst:
+    x.pre_sign(qqq[c][0])
+    c+=1 
+c = 0
+for x in lst:
     x.sign(qqq[c][0], M, qqqsk[c], qqq[c][1])
     c+=1
 c = 0
 z = 0
-for x in range(1, n+1):
-    c+=lst[0].bedoza_vals[str(x)+'-c']
-    print(lst[0].bedoza_vals)
-    z = lst[0].bedoza_vals[str(x)+'--rx']
-print("*"*1000)
-print(c)
-print(z)
+aaa = []
+for x in range(0, n):
+    aaa.append(lst[x].gather_signature())
+    lst[x].rx
+    #c+=lst[0].bedoza_vals[str(x)+'-c']
+    #print(lst[0].bedoza_vals)
+    #z = lst[0].bedoza_vals[str(x)+'--rx']
+print("Following are the signatures")
+for x in aaa:
+    for y in aaa:
+        if not x == y:
+            print("error....")
+print(aaa)
+input()
+#print("*"*1000)
+#print(c)
+#print(z)
 a = ecdsa.Ecdsa(2**256-2**32-2**9-2**8-2**7-2**6-2**4-1)
 
 #MANGLER AT SUMME [k] erne ish aka det med kG der for rx ?
 #ER GENERATOREN FORSKELLIG? DE SKAL HAVE SAMME G
 
 qad = a.sign(M, sk)
-print("rx")
-print(z)
-print("s")
-print(c)
-print("qad")
-print(qad)
+#print("rx")
+#print(z)
+#print("s")
+#print(c)
+#print("qad")
+#print(qad)
 assert(a.verify(M, (z, c), pk))
 
 
@@ -134,11 +149,11 @@ def secret_sharing(id):
         x.compute_share_of_party(id)
 
     for x in lst:
-        print("Party {0}'s value is {1}".format(x.ID, x.v))
+        ("Party {0}'s value is {1}".format(x.ID, x.v))
     tmp = 0
     for x in lst:
-        print("Party: ", x.ID)
-        print(x.party_shares)
+        #print("Party: ", x.ID)
+        #print(x.party_shares)
         tmp += x.party_shares[str(id)]
     assert(tmp %p == d.parties[id].v)
 

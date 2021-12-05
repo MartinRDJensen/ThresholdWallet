@@ -49,10 +49,10 @@ class Ecdsa:
             #Chance 1/p
             return None
            
-        hash = hashlib.sha1(M)
+        hash = hashlib.sha256(M)
         hex_hash = hash.hexdigest()
         e_ = int(hex_hash, 16) #Skal det være mod p?
-        print("E_ is: ",e_ )
+        
         #Hvad type vil M være?????
         #Kan H(M) være modulus eller er det gg?
         s = (k_inv*(e_+sk.d*rx)) % order
@@ -61,11 +61,11 @@ class Ecdsa:
             return None
         return (rx, s)
     def verify(self, M, s, pk):
-        hash = hashlib.sha1(M)
+        hash = hashlib.sha256(M)
         hex_hash = hash.hexdigest()
         e_ = int(hex_hash, 16) #Skal det være mod p?
         
-        print("E_ is: ",e_ )
+      
         rx, s_ = s
 
         curve = pk.curve
@@ -87,8 +87,7 @@ class Ecdsa:
         #if rx = v yay else corrupt message
 
         v = tmp.x % order
-        print("v is: ", v)
-        print("rx is: ", rx)
+        
         return rx == v
 
 #a = Ecdsa(2**256-2**32-2**9-2**8-2**7-2**6-2**4-1)
