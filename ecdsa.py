@@ -36,7 +36,8 @@ class Ecdsa:
 
         order = curve.order
         
-        k = random.randint(0, order)
+        #k = random.randint(0, order)
+        k = pow(10, -1, order)
         k_inv = pow(k, -1, order) 
         assert(k*k_inv % order == 1)
                 

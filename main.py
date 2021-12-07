@@ -2,6 +2,7 @@ import time
 import dealer
 import party
 import ecdsa
+import sys
 from ecpy.curves import Curve, Point
 from ecpy.keys import ECPrivateKey, ECPublicKey
 
@@ -9,12 +10,17 @@ from ecpy.keys import ECPrivateKey, ECPublicKey
 curve = Curve.get_curve('secp256k1')
 sk = ECPrivateKey(10, curve)
 pk = sk.get_public_key()
-
+print(curve.order)
+input("order ^")
 n = 3
 
 #P = PRIME USED IN BITCOIN
 p = 2**256-2**32-2**9-2**8-2**7-2**6-2**4-1
-d = dealer.Dealer(n, p)
+print(curve.order == p)
+input("asdasdsa")
+
+#d = dealer.Dealer(n, p)
+d = dealer.Dealer(n, curve.order)
 
 lst = []
 
@@ -31,35 +37,40 @@ for x in lst:
 
 #d.distribute_shares()
 
-d.prepare_new_a_shares
+d.prepare_new_a_shares()
 d.distribute_shares()
 for x in lst:
+    print("Party {0}'s share of a is {1}".format(x.ID, x.share_a))
     x.private_open_a(1)
 d.parties[1].delta_comp_open()
 for x in lst:
     x.compute_share_of_party(1)
-    
+    print("Party {0}'s share is {1}".format(x.ID, x.party_shares))
+    input()
+
 for x in lst:
     print("Party {0}'s value is {1}".format(x.ID, x.v))
     
+#sys.exit()
 tmp = 0
 for x in lst:
     print("Party: ", x.ID)
     print(x.party_shares)
     tmp += x.party_shares[str(1)]
-assert(tmp % p == d.parties[1].v)
-
-d.distribute_mult_shares2(('c', 'a', 'b'))
+#assert(tmp % p == d.parties[1].v)
+assert(tmp % curve.order == d.parties[1].v)
+assert((100515067930398706113235707758617487464811881718976817032317256177315546085350+6551871769517909377616050998119117036343307990303054260159914864061069467253+8725149537399579932719226251951303351682374569795033090127992100141545941744)%curve.order == 10)
+d.distribute_mult_shares2(('c', 'a', 'b'), True)
 for x in lst:
     x.open_c_ind_pre()
 qqq = []
 for x in lst:
     qqq.append(x.independent_preprocessing())
-print(qqq)
 
 c = 0
 d.distribute_mult_shares2(('w','u','v'))
 for x in lst:
+    #qqq is list of touples of angular_k, k_inv_share
     x.dependent_preprocessing(qqq[c][1], 1)
     c+=1
 
@@ -93,25 +104,26 @@ for x in aaa:
     for y in aaa:
         if not x == y:
             print("error....")
-print(aaa)
-input()
+
 #print("*"*1000)
 #print(c)
 #print(z)
 a = ecdsa.Ecdsa(2**256-2**32-2**9-2**8-2**7-2**6-2**4-1)
 
-#MANGLER AT SUMME [k] erne ish aka det med kG der for rx ?
-#ER GENERATOREN FORSKELLIG? DE SKAL HAVE SAMME G
 
 qad = a.sign(M, sk)
+print(aaa[0])
+print("actual sign")
+print(qad)
 #print("rx")
 #print(z)
 #print("s")
 #print(c)
 #print("qad")
 #print(qad)
-assert(a.verify(M, (z, c), pk))
+assert(a.verify(M, aaa[0], pk))
 
+sys.exit()
 
 
 
