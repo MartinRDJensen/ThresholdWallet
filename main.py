@@ -23,7 +23,7 @@ input("asdasdsa")
 d = dealer.Dealer(n, curve.order)
 
 lst = []
-
+""""""
 for x in range(1, n+1):
     lst.append(party.Party(d,x,0))
 lst[0].v = sk.d
@@ -72,6 +72,7 @@ d.distribute_mult_shares2(('w','u','v'))
 for x in lst:
     #qqq is list of touples of angular_k, k_inv_share
     x.dependent_preprocessing(qqq[c][1], 1)
+    x.open_eps_delt()
     c+=1
 
 qqqsk = []
@@ -121,6 +122,7 @@ print(qad)
 #print(c)
 #print("qad")
 #print(qad)
+assert(a.verify(M, qad, pk))
 assert(a.verify(M, aaa[0], pk))
 
 sys.exit()

@@ -68,7 +68,7 @@ class Party:
                     ##print("a val, ", self.a_shares[k])
                     #print("tmp before, ", tmp)
                     #print("delta comp: {0} - {1}", )
-                    tmp += (self.bedoza_vals[str(ID)+'-'+'delta'] + self.a_shares[k])
+                    tmp += (self.bedoza_vals[str(ID)+'-'+'delta'] + self.a_shares[k]) % self.p
                     #print("tmp after, ", tmp)
                     # x - (delta + secreta) 
                    # input()
@@ -79,8 +79,6 @@ class Party:
             self.party_shares[str(ID)] = (self.bedoza_vals[str(ID)+'-'+'delta'] + self.share_a) % self.p
     
     def open_c_ind_pre(self):
-        print(self.bedoza_vals)
-        print("LOOK FOR C")
         self.open_val(self.bedoza_vals[str(self.ID)+'-c'], 'c')
     def convert(self, v):
         return v % self.order
@@ -138,20 +136,20 @@ class Party:
         print("Used values for mult are:")
         print("kinvshare, ", k_inv_share)
         print("skshare, ", sk_share)
-        self.aaaa = (self.party_shares[str(ID)] * k_inv_share) % self.p
-        print("mult ting, ", self.aaaa)
+        #self.aaaa = (self.party_shares[str(ID)] * k_inv_share) % self.p
+        #print("mult ting, ", self.aaaa)
         input()
     def dpre2(self):
         sk_share_prime = self.mult_p2()
         print("apprpoved")
         print("The calculated value of skprime is:")
         print(sk_share_prime)
-        print("Comparing skshareprime {0} and mult ting {1}".format(sk_share_prime, self.aaaa))
+        #print("Comparing skshareprime {0} and mult ting {1}".format(sk_share_prime, self.aaaa))
         
 #        assert(sk_share_prime == self.aaaa)
         
         input()
-        return sk_share_prime
+        return sk_share_prime % self.order
     def pre_sign(self, angular_k):
         self.G = self.curve.generator
         print("Party {0} value of G is {1}".format(self.ID, self.G))
@@ -207,19 +205,15 @@ class Party:
         print(sk_share_prime)
         s = (k_inv_share* e_+sk_share_prime*self.rx) % self.order
         #s = (k_inv_share*(e_+self.aaaa*self.rx)) % self.order
-        self.open_val(s, '-s')
+        self.open_val(s, 's')
 
     def gather_signature(self):
         s = 0
+        print(self.bedoza_vals.items())
         for x, y in self.bedoza_vals.items():
             if '-s' in x:
-                s += y % self.p
-        return (self.rx, s)
-
-
-
-
-
+                s += y % self.order
+        return (self.rx, s % self.order)
 
 
     #alle får et random a
@@ -289,7 +283,7 @@ class Party:
         tmp2 = self.mult_const(d, u)
         tmp3 = self.add_two_values(w, tmp1)
         tmp4 = self.add_two_values(tmp3, tmp2)
-        tmp5 = self.add_const(e*d, tmp4, 3)
+        tmp5 = self.add_const((e*d), tmp4, 3)
         return tmp5
         print("w ", w)
         print("e ", e)
