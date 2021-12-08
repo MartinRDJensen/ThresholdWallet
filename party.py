@@ -13,17 +13,14 @@ class Party:
         self.dealer = dealer
         self.ID = ID
         self.v = v
-        self.p = dealer.get_p() #2**256-2**32-2**9-2**8-2**7-2**6-2**4-1
         self.peers = {}
-        
         self.share_a = -1
-        
         self.a_shares = {}
         self.bedoza_vals = {}
         self.party_shares = {}
-
         self.curve = Curve.get_curve('secp256k1')
         self.order = self.curve.order
+        self.p = self.curve.order  #dealer.get_p() #2**256-2**32-2**9-2**8-2**7-2**6-2**4-1
     
 
     def alpha_comp_open(self):
@@ -50,8 +47,11 @@ class Party:
         else:
             self.party_shares[str(ID)] = (self.bedoza_vals[str(ID)+'-'+'alpha'] + self.share_a) % self.p
     
-    def convert(self, v):
-        return v % self.order
+    #def convert(self, v):
+    #    print(v)
+    #    print(v % self.order)
+    #    input()
+    #    return v % self.order
     
     def open_c_ind_pre(self):
         self.open_val(self.bedoza_vals[str(self.ID)+'-c'], 'c')
@@ -71,7 +71,7 @@ class Party:
                 c += y % self.p
         self.k_inv_share = self.bedoza_vals[str(self.ID)+'-a']
 
-        self.angular_k = self.convert(self.bedoza_vals[str(self.ID) + '-b']) * pow(c, -1, self.order)
+        self.angular_k = self.bedoza_vals[str(self.ID) + '-b'] * pow(c, -1, self.order)
         
      
     def dependent_preprocessing(self, ID):
@@ -87,7 +87,6 @@ class Party:
     def dpre2(self):
         self.sk_share_prime = self.mult_p2()
 
-       
     def pre_sign(self):
         self.G = self.curve.generator
         R = self.angular_k * self.G
@@ -128,8 +127,6 @@ class Party:
             if '-s' in x:
                 s += y #% self.order
         return (self.rx, s % self.order)
-
-
     
     def mult_const(self, c, val):
         return (c * val) % self.p 
@@ -137,7 +134,6 @@ class Party:
     def private_open_share_a(self):
         return self.share_a
 
-  
     def add_const(self, c, val):
         if self.ID == 2:
             return (c + val) % self.p 
