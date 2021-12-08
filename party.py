@@ -1,20 +1,19 @@
 from ecpy.curves import Curve, Point
 from ecpy.keys import ECPrivateKey, ECPublicKey
 import hashlib
-
 class Party:
-    dealer = None
-    p = None
-    ID = None
-    v = None
-    a_shares = None 
-    values = None 
+    #dealer = None
+    #p = None
+    #ID = None
+    #v = None
+    #a_shares = None 
+    #values = None 
 
     def __init__(self, dealer, ID, v):
         self.dealer = dealer
         self.ID = ID
         self.v = v
-        self.p = self.dealer.get_p()
+        self.p = dealer.get_p() #2**256-2**32-2**9-2**8-2**7-2**6-2**4-1
         self.peers = {}
         
         self.share_a = -1
@@ -26,62 +25,37 @@ class Party:
         self.curve = Curve.get_curve('secp256k1')
         self.order = self.curve.order
     
-    def delta_comp_open(self):
-        a = sum(self.a_shares.values()) + self.share_a
-        print("Sum of a shares is, ", a)
-        delta = (a - self.v) % self.p
 
-        print("self.v, ", self.v)
-        print("Delta is, ", delta)
-        self.open_val(delta, 'delta')
+    def alpha_comp_open(self):
+        a = sum(self.a_shares.values()) + self.share_a
+        alpha = (a - self.v) % self.p
+        self.open_val(alpha, 'alpha')
 
     def private_open_a(self, ID):
-        if ID in self.peers:
-            self.peers[ID].a_shares[str(self.ID)] = self.share_a
-        else:
-            self.a_shares[str(self.ID)] = self.share_a
-    #store a til party i der er igang med at input en value til protocollen
+        self.peers[ID].a_shares[str(self.ID)] = self.share_a
 
     def open_val(self, v, t):
-        #peers => har alle værder der bliver beregnet i bedoza. eps, delta, w,u,v
-        #print ("We are in open val...")
-        if t == 'alpha':
-            for k, c in self.peers.items():
-                c.a_shares[str(self.ID)+'-'+t]=v
-        else:
-            for k, c in self.peers.items():
-                c.bedoza_vals[str(self.ID)+'-'+t]=v
-        #print(str(self.ID)+'-'+t)
-       # input()
-        #for a ID-a
-
+        for _, c in self.peers.items():
+            c.bedoza_vals[str(self.ID)+'-'+t]=v
+    
     def compute_share_of_party(self, ID):
         #Function to compute your own secret shares
         #the randomness of 'a' masks the true value that party ID inputs to the protocol
         if self.ID == ID:
             tmp = 0 
             for k, _  in self.a_shares.items():
-               # print("A shares: ", self.a_shares)
                 if not k == str(self.ID):
-                    #nani the fuck k er legit == self.ID .. ?
-                    #print("delta val, ", self.bedoza_vals[str(ID)+'-'+'delta'])
-                    ##print("a val, ", self.a_shares[k])
-                    #print("tmp before, ", tmp)
-                    #print("delta comp: {0} - {1}", )
-                    tmp += (self.bedoza_vals[str(ID)+'-'+'delta'] + self.a_shares[k]) % self.p
-                    #print("tmp after, ", tmp)
-                    # x - (delta + secreta) 
-                   # input()
-            #print("Computation is {0} - {1}".format(self.v, tmp))
+                    tmp += (self.bedoza_vals[str(ID)+'-'+'alpha'] + self.a_shares[k]) % self.p
             self.party_shares[str(ID)] = (self.v - tmp) % self.p
         else:
-            #print("Computation is {0} - {1}".format(self.bedoza_vals[str(ID)+'-'+'delta'], self.share_a))
-            self.party_shares[str(ID)] = (self.bedoza_vals[str(ID)+'-'+'delta'] + self.share_a) % self.p
+            self.party_shares[str(ID)] = (self.bedoza_vals[str(ID)+'-'+'alpha'] + self.share_a) % self.p
+    
+    def convert(self, v):
+        return v % self.order
     
     def open_c_ind_pre(self):
         self.open_val(self.bedoza_vals[str(self.ID)+'-c'], 'c')
-    def convert(self, v):
-        return v % self.order
+
     def independent_preprocessing(self):
         """
     User independent preprocessing. The goal is to generate a pair (⟨k⟩, [k−1]) for each signature in the following way.
@@ -91,72 +65,35 @@ class Party:
 4. Define ⟨k⟩ ← Convert([b]) · c−1
 5. Output (⟨k⟩, [k−1]).
     """
-        print("independent for party: ", self.ID)
-        print("independent for party: ", self.ID)
-        print("independent for party: ", self.ID)
         c = 0
         for x, y in self.bedoza_vals.items():
             if 'c' in x:
                 c += y % self.p
-        print("Calculated value of C is, ", c)
-        print("Calculated value of C is, ", c)
-        print("Calculated value of C is, ", c)
-        #print("Value of c: ", c)
-        #Secret sharing of inv(k) is just str(id)-a in bedoza vals
-        k_inv_share = self.bedoza_vals[str(self.ID)+'-a']
-        print("k_inv_share is set to, ", self.bedoza_vals[str(self.ID)+'-a'])
-        print("k_inv_share is set to, ", self.bedoza_vals[str(self.ID)+'-a'])
-        print("k_inv_share is set to, ", self.bedoza_vals[str(self.ID)+'-a'])
-        print(self.bedoza_vals )
-        angular_k = self.convert(self.bedoza_vals[str(self.ID) + '-b']) * pow(c, -1, self.order)
-        print("Inverse c mod order ", pow(c, -1, self.order))
-        print("Inverse c mod order ", pow(c, -1, self.order))
-        print("Inverse c mod order ", pow(c, -1, self.order))
-        print(pow(c, -1, self.order)*c % self.order)
-        print("ANgular_k is calculated as: ", angular_k)
-        print("ANgular_k is calculated as: ", angular_k)
-        print("ANgular_k is calculated as: ", angular_k)
+        self.k_inv_share = self.bedoza_vals[str(self.ID)+'-a']
 
-        return angular_k, k_inv_share
-    
-    def dependent_preprocessing(self, k_inv_share, ID):
-        print("dependent for party: ", self.ID)
-        print("dependent for party: ", self.ID)
-        print("dependent for party: ", self.ID)
+        self.angular_k = self.convert(self.bedoza_vals[str(self.ID) + '-b']) * pow(c, -1, self.order)
+        
+     
+    def dependent_preprocessing(self, ID):
         """
         User dependent preprocessing.
         1. Take as input [skj] (the sharing of the secret key of user Uj) and (⟨k⟩,[k−1]) (an unused tuple from the previous phase).
         2. Compute [sk′j] = [skj/k] ← Mul([k−1],[skj])
         3. Output a final tuple (⟨k⟩,[k−1],[sk′j]).
         """
-        #print("*"*1000)
-        #print(self.party_shares)
         sk_share = self.party_shares[str(ID)]
-        self.mult_p1(k_inv_share, sk_share)
-        print("Used values for mult are:")
-        print("kinvshare, ", k_inv_share)
-        print("skshare, ", sk_share)
-        #self.aaaa = (self.party_shares[str(ID)] * k_inv_share) % self.p
-        #print("mult ting, ", self.aaaa)
-        input()
+        self.mult_p1(self.k_inv_share, sk_share)
+
     def dpre2(self):
-        sk_share_prime = self.mult_p2()
-        print("apprpoved")
-        print("The calculated value of skprime is:")
-        print(sk_share_prime)
-        #print("Comparing skshareprime {0} and mult ting {1}".format(sk_share_prime, self.aaaa))
-        
-#        assert(sk_share_prime == self.aaaa)
-        
-        input()
-        return sk_share_prime % self.order
-    def pre_sign(self, angular_k):
+        self.sk_share_prime = self.mult_p2()
+
+       
+    def pre_sign(self):
         self.G = self.curve.generator
-        print("Party {0} value of G is {1}".format(self.ID, self.G))
-        R = angular_k * self.G
+        R = self.angular_k * self.G
         self.open_val(R, 'R')
         
-    def sign(self, angular_k, M, sk_share_prime, k_inv_share):
+    def sign(self, M):
         """
         Given a message to be signed M and preprocessed tuple (⟨k⟩,[k−1],[sk′j]) for Uj.
         1. RunR←Open(⟨k⟩)=(bc−1)·G=a−1 ·G=k·G 2. Let(rx,ry)←R.
@@ -164,65 +101,35 @@ class Party:
         4. Open s ← Open([s]) and output σ = (rx, s).
         """
         
-        print("We are in sign")
-        
         lst = []
         for x, y in self.bedoza_vals.items():
             if 'R' in x:
                 lst.append(y)
-                #R = self.curve.add_point(R, y)
-                #R += y.x #% self.order
 
         R = self.curve.add_point(lst[0], lst[1])
-        R = self.curve.add_point(R, lst[2])
-        
-        
-        print("Party {0} value of R is {1}".format(self.ID, R))
-        print("Party {0} value of Rx is {1}".format(self.ID, R))
-        
+
+        for x in lst[2:]:
+            R = self.curve.add_point(R, x)
+
         self.rx = R.x
-        
         
         hash = hashlib.sha256(M)
         hex_hash = hash.hexdigest()
         e_ = int(hex_hash, 16) 
 
-        #rxskjprime = self.mult_const(self.rx, sk_share_prime)
-        #hashmkinvshare = self.mult_const(e_, k_inv_share)
-        #s = self.add_two_values(rxskjprime, hashmkinvshare)
-        print(k_inv_share)
-        print(k_inv_share)
-        print(k_inv_share)
-        print(e_)
-        print(e_)
-        print(e_)
-        print(self.rx)
-        print(self.rx)
-        print(self.rx)
-        print(sk_share_prime)
-        print(sk_share_prime)
-        print(sk_share_prime)
-        print(sk_share_prime)
-        s = (k_inv_share* e_+sk_share_prime*self.rx) % self.order
-        #s = (k_inv_share*(e_+self.aaaa*self.rx)) % self.order
+        rxskjprime = self.mult_const(self.rx, self.sk_share_prime)
+        hashmkinvshare = self.mult_const(e_, self.k_inv_share)
+        s = self.add_two_values(rxskjprime, hashmkinvshare)
         self.open_val(s, 's')
 
     def gather_signature(self):
         s = 0
-        print(self.bedoza_vals.items())
         for x, y in self.bedoza_vals.items():
             if '-s' in x:
-                s += y % self.order
+                s += y #% self.order
         return (self.rx, s % self.order)
 
 
-    #alle får et random a
-    # a \in_R 
-    #pi får private open a 
-    #dealer random gen a, bergner n antal [a] værider og sender dem rundt
-    def open_mult(self, v):
-        for i in self.peers:
-            i.ed.append(v)
     
     def mult_const(self, c, val):
         return (c * val) % self.p 
@@ -230,49 +137,31 @@ class Party:
     def private_open_share_a(self):
         return self.share_a
 
-    # Spørg ind til add_const til møde
-    # Er det altid samme party der vil beregne?
-    # x*2+4*y (3+z), hvis dette var f, kan vi så hardcode til at self.id = 'z'?
-    def add_const(self, c, val, id):
-        if self.ID == 3:
+  
+    def add_const(self, c, val):
+        if self.ID == 2:
             return (c + val) % self.p 
         return val
     
     def add_two_values(self, x, y):
         return (x + y) % self.p
 
-    def send_share_a(self):
-        return self.share_a
-    def recv_share_a(self, a):
-        self.a_shares.append(a)
-
-    def open_eps_delt(self):
-        d = self.bedoza_vals[str(self.ID)+'-delta-mult']
-        e = self.bedoza_vals[str(self.ID)+'-eps-mult']
-        self.open_val(d, 'delta-mult')
-        self.open_val(e, 'eps-mult')
     def mult_p1(self,  x, y):
-        print("mult p1 for party: ", self.ID)
-        print("mult p1 for party: ", self.ID)
-        print("mult p1 for party: ", self.ID)
         u = self.bedoza_vals[str(self.ID)+'-u']
         v = self.bedoza_vals[str(self.ID)+'-v']
         e = (x - u) % self.p
         d = (y - v) % self.p
         self.bedoza_vals[str(self.ID)+'-eps-mult'] = e
         self.bedoza_vals[str(self.ID)+'-delta-mult'] = d
+        self.open_val(d, 'delta-mult')
+        self.open_val(e, 'eps-mult')
 
     def mult_p2(self):
-        print("mult p2 for party: ", self.ID)
-        print("mult p2 for party: ", self.ID)
-        print("mult p2 for party: ", self.ID)
-        
         e = 0
         d = 0
         w = self.bedoza_vals[str(self.ID)+'-w']
         v = self.bedoza_vals[str(self.ID)+'-v']
         u = self.bedoza_vals[str(self.ID)+'-u']
-        print(self.bedoza_vals)
         for x, y in self.bedoza_vals.items():
             if 'eps-mult' in x:
                 e += y % self.p
@@ -283,16 +172,5 @@ class Party:
         tmp2 = self.mult_const(d, u)
         tmp3 = self.add_two_values(w, tmp1)
         tmp4 = self.add_two_values(tmp3, tmp2)
-        tmp5 = self.add_const((e*d), tmp4, 3)
+        tmp5 = self.add_const((e*d), tmp4)
         return tmp5
-        print("w ", w)
-        print("e ", e)
-        print("v ", v)
-        print("d ", d)
-        print("u ", u)
-        print("modulus p ", self.p)
-        tmp_res = (w + e * v + d * u) % self.p
-        print("tmp_res = (w + e * v + d * u) \% self.p gives: ", tmp_res)
-        result = self.add_const(e * d, tmp_res, 3)
-        print("result = self.add_const(e * d, tmp_res, 3) gives: ", result)
-        return result
