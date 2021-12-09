@@ -1,30 +1,43 @@
 import random 
 class Dealer:
-    #parties = None
-    #a = None 
-    #a_shares = None
-    def __init__(self, n, p):
+    def __init__(self, number_of_parties, p):
+        """
+            self.parties  -> Dictionary mapping party ID -> party object
+            self.p        -> Modulus to be used in operations
+            self.a        -> a value generated at random in Z_p
+            self.a_shares -> shares ([a_1, ..., [a_number_of_parties]])
+        """
         self.parties = {}
         self.p = p
-        self.n = n
-        self.a, self.a_shares = self.gen_shares_of_a()
+        self.number_of_parties = number_of_parties
+        self.a, self.a_shares = self.compute_shares()
 
-    def distribute_shares(self):
+    def distribute_a_shares(self):
+        """
+            Functions that distributes shares of self.a
+        """
         for _, v in self.parties.items():
             v.share_a = self.a_shares.pop() 
         assert(len(self.a_shares) == 0)
     
-    def gen_mult_vals(self):        
+    def compute_mult_shares(self):
+        """
+            Function that computes w = uv and shares of the 3 values.
+            Returns the shares computed.
+        """        
         u = random.randint(0, self.p)
         v = random.randint(0, self.p)
         w = (u * v) % self.p
-        v_shares = self.gen_shares_of_a(v)
-        u_shares = self.gen_shares_of_a(u)
-        w_shares = self.gen_shares_of_a(w)    
+        v_shares = self.compute_shares(v)
+        u_shares = self.compute_shares(u)
+        w_shares = self.compute_shares(w)    
         return w_shares, u_shares, v_shares
         
     def distribute_mult_shares(self, t):
-        w_shares, u_shares, v_shares = self.gen_mult_vals()
+        """
+            Computes and distributes values of the shares used in the arithmetic multiplication.
+        """
+        w_shares, u_shares, v_shares = self.compute_mult_shares()
         c = 0
         for _, v in self.parties.items():
             v.bedoza_vals[str(v.ID) +'-'+ t[0]] = w_shares[c]
@@ -33,32 +46,34 @@ class Dealer:
             c += 1
 
     def prepare_new_a_shares(self):
-        self.a = random.randint(0, self.p)
-        self.a_shares = self.gen_shares_of_a(self.a)
+        self.a, self.a_shares = self.compute_shares()
    
-    def gen_shares_of_a(self, a = None):
+    def compute_shares(self, a = None):
+        """
+            a -> Value to compute shares of. 
+                 The number of shares computed equals the number of parties participating
+            
+            If a = None then it returns a value (v, shares) where v is the value shares are computed for
+        """
         val_none = True if a == None else False
         fail = True
         while fail:
             if a == None:
-                a = random.randint(0, self.p) # use n to create n shares
+                a = random.randint(0, self.p)
             v = a
-            lst = []
-            for x in range(self.n):
+            shares = []
+            for x in range(self.number_of_parties):
                 b = random.randint(0, a)
                 a = a-b   
-                if x == self.n-1:
+                if x == self.number_of_parties-1:
                     b +=a
-                lst.append(b)
-            if not 0 in lst:
+                shares.append(b)
+            if not 0 in shares:
                 fail = False
-        assert(v==sum(lst))
+        assert(v==sum(shares))
         if val_none:
-            return (v, lst)
-        return lst
-
-    def get_p(self):
-        return self.p 
+            return (v, shares)
+        return shares
 
     def new_party(self, party):
         self.parties[party.ID] = party
