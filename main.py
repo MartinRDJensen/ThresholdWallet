@@ -34,7 +34,7 @@ def status_printer(epoch, total):
         Helper function to print how far we are.
         Prints every 5 percent.
     """
-    if epoch % (total / 10):
+    if epoch % int(total * 0.05) == 0:
         print("{0} % done so far".format(int(epoch/total*100)))
 
 def run_protocol(number_of_parties, p, sk, pk, total = 1):

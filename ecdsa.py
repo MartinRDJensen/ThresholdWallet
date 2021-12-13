@@ -15,14 +15,13 @@ class Ecdsa:
         self.curve = Curve.get_curve('secp256k1')
         self.order = self.curve.order
         self.G = self.curve.generator
-
+        
     def sign(self, M, sk):
         """
             M  -> Bytestring of the message to be signed
             sk -> Is ecpy library private key. Has an attribute d which returns the private key scalar and a curve.
                   The curve is the secp256k1 curve
         """
-        
         k = random.randint(0, self.order)
         k_inv = pow(k, -1, self.order) 
         assert(k*k_inv % self.order == 1)

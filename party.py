@@ -108,7 +108,8 @@ class Party:
             1. Runs R ← Open(⟨k⟩) = (bc−1)·G = a−1 ·G = k·G 2.
         """
         self.G = self.curve.generator
-        R = self.angular_k * self.G
+        #R = self.angular_k * self.G
+        R = self.curve.mul_point(self.angular_k, self.G)
         self.public_open(R, 'R')
         
     def sign(self, M):
