@@ -1,7 +1,8 @@
 import time 
 import dealer
 import party
-import ecdsa
+import ecdsa 
+import random
 from ecpy.curves import Curve
 from ecpy.keys import ECPrivateKey
 
@@ -118,10 +119,11 @@ def run_protocol(number_of_parties, p, sk, pk, total = 1):
 
 #Curve used in bitcoin is secp256k1
 curve = Curve.get_curve('secp256k1')
-sk = ECPrivateKey(12341239804712098341234123412351234126354233141, curve)
+p = curve.order
+v = random.randint(1,p)
+sk = ECPrivateKey(v, curve)
 pk = sk.get_public_key()
 M = b'MessageToBeSigned!' 
 n = 20
-p = curve.order
 
 run_protocol(n, p, sk, pk, 100)

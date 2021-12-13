@@ -173,8 +173,8 @@ class Party:
         #BeDOZa gate
         u = self.bedoza_vals[str(self.ID)+'-u']
         v = self.bedoza_vals[str(self.ID)+'-v']
-        e = (x - u) % self.p
-        d = (y - v) % self.p
+        e = self.add_two_values(x, -u) #(x - u) % self.p
+        d = self.add_two_values(y, -v) #(y - v) % self.p
         self.bedoza_vals[str(self.ID)+'-eps-mult'] = e
         self.bedoza_vals[str(self.ID)+'-delta-mult'] = d
         self.public_open(d, 'delta-mult')
